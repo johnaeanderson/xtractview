@@ -7,11 +7,24 @@
 plot_xtract(tract_data)
 }
 \arguments{
-\item{tract_data}{A data.frame containing columns 'region' (tract names) and 'value'.}
+\item{tract_data}{A \code{data.frame} or tibble containing the data to map.
+Must include a column named exactly \code{"region"} containing valid XTRACT tract names,
+and at least one numeric metric column (e.g., \code{Mean_FA}, \code{MD}, \code{Volume})
+with values bounded between 0 and 1.}
 }
 \value{
 A combined patchwork ggplot object showing 4 anatomical views.
 }
 \description{
-Multi-Planar Anatomical Mapping for XTRACT Data
+Renders a 4-panel multi-planar plot mapping tract metrics onto 2D structural templates.
+}
+\examples{
+# --- Example of how to format user data ---
+my_data <- data.frame(
+  region = c("Corticospinal Tract L", "Arcuate Fasciculus R", "Forceps Minor"),
+  Mean_FA = c(0.55, 0.62, 0.41)
+)
+
+# Render the plot
+plot_xtract(my_data)
 }
