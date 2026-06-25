@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_xtract_gallery.R
 \name{plot_xtract_gallery}
 \alias{plot_xtract_gallery}
-\title{Multi-Slice Gallery Mapping for XTRACT Data}
+\title{Multi-Slice Coronal Gallery Mapping for XTRACT Data}
 \usage{
 plot_xtract_gallery(tract_data)
 }
@@ -10,8 +10,8 @@ plot_xtract_gallery(tract_data)
 \item{tract_data}{A data.frame containing columns 'region' (tract names) and 'value'.}
 }
 \value{
-A faceted ggplot object showing sequential structural views.
+A faceted ggplot object showing sequential coronal structural views.
 }
 \description{
-Multi-Slice Gallery Mapping for XTRACT Data
+Multi-Slice Coronal Gallery Mapping for XTRACT Data
 }
