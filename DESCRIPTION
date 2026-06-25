@@ -19,3 +19,5 @@ Imports:
     stars
 Depends: 
     R (>= 3.5)
+URL: https://github.com/johnaeanderson/xtractview
+BugReports: https://github.com/johnaeanderson/xtractview/issues
