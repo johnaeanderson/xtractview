@@ -16,10 +16,17 @@ plot_xtract_sag_gallery <- function(tract_data, limit_min = NULL, limit_max = NU
 
   val_col <- names(tract_data)[names(tract_data) != "region"][1]
 
-  # --- NEW: Dynamic Scale Calculation ---
+  # --- FIX 1: Smarter Dynamic Midpoint for Statistical Maps ---
   if (is.null(limit_min)) limit_min <- min(tract_data[[val_col]], na.rm = TRUE)
   if (is.null(limit_max)) limit_max <- max(tract_data[[val_col]], na.rm = TRUE)
-  if (is.null(midpoint))  midpoint  <- mean(c(limit_min, limit_max), na.rm = TRUE)
+
+  if (is.null(midpoint)) {
+    if (limit_min < 0 && limit_max > 0) {
+      midpoint <- 0
+    } else {
+      midpoint <- mean(c(limit_min, limit_max), na.rm = TRUE)
+    }
+  }
 
   # Ensure numeric sorting for the factor levels
   unique_slices <- unique(all_sag_bg$slice_id)
@@ -31,24 +38,27 @@ plot_xtract_sag_gallery <- function(tract_data, limit_min = NULL, limit_max = NU
   plot_df <- dplyr::left_join(all_sag_tracts, tract_data, by = "region")
 
   ggplot2::ggplot() +
-    ggplot2::geom_sf(data = all_sag_bg, fill = "transparent", color = "#EAEAEA", size = 0.1) +
+    # --- FIX 2: Use strictly NA instead of "transparent" ---
+    ggplot2::geom_sf(data = all_sag_bg, fill = NA, color = "#EAEAEA", size = 0.1) +
     ggplot2::geom_sf(data = plot_df, ggplot2::aes(fill = .data[[val_col]]), color = "black", size = 0.2) +
 
-    # --- NEW: Apply the dynamic limits to the gradient ---
     ggplot2::scale_fill_gradient2(
       low = "blue", mid = "white", high = "red",
       midpoint = midpoint,
       limits = c(limit_min, limit_max),
-      na.value = "transparent"
+      na.value = NA
     ) +
 
     ggplot2::facet_wrap(~slice_id, ncol = 3) +
+
+    # --- FIX 3: Nuke the underlying geographic spatial graticule box completely ---
+    ggplot2::coord_sf(datum = NA) +
     ggplot2::theme_void() +
     ggplot2::theme(
       panel.border     = ggplot2::element_blank(),
       strip.background = ggplot2::element_blank(),
-      panel.background = ggplot2::element_rect(fill = "transparent", colour = NA),
-      plot.background  = ggplot2::element_rect(fill = "transparent", colour = NA),
+      panel.background = ggplot2::element_rect(fill = NA, colour = NA),
+      plot.background  = ggplot2::element_rect(fill = NA, colour = NA),
       strip.text       = ggplot2::element_text(face = "bold", size = 10)
     )
 }
