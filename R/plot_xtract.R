@@ -5,8 +5,10 @@
 #'
 #' @param tract_data A \code{data.frame} or tibble containing the data to map.
 #'   Must include a column named exactly \code{"region"} containing valid XTRACT tract names,
-#'   and at least one numeric metric column (e.g., \code{Mean_FA}, \code{MD}, \code{Volume})
-#'   with values bounded between 0 and 1.
+#'   and at least one numeric metric column (e.g., \code{Mean_FA}, \code{MD}, \code{Volume}).
+#' @param limit_min Optional numeric. Lower bound for the color scale. Defaults to min data value.
+#' @param limit_max Optional numeric. Upper bound for the color scale. Defaults to max data value.
+#' @param midpoint Optional numeric. Center point for the color scale. Defaults to halfway between min and max.
 #'
 #' @return A combined patchwork ggplot object showing 4 anatomical views.
 #' @export
@@ -20,9 +22,18 @@
 #'
 #' # Render the plot
 #' plot_xtract(my_data)
-plot_xtract <- function(tract_data) {
+plot_xtract <- function(tract_data, limit_min = NULL, limit_max = NULL, midpoint = NULL) {
+
+  # --- FIX: Initialize spatial vector methods for fresh R sessions ---
+  requireNamespace("sf", quietly = TRUE)
+  requireNamespace("patchwork", quietly = TRUE)
 
   val_col <- names(tract_data)[names(tract_data) != "region"][1]
+
+  # --- NEW: Dynamic Scale Calculation ---
+  if (is.null(limit_min)) limit_min <- min(tract_data[[val_col]], na.rm = TRUE)
+  if (is.null(limit_max)) limit_max <- max(tract_data[[val_col]], na.rm = TRUE)
+  if (is.null(midpoint))  midpoint  <- mean(c(limit_min, limit_max), na.rm = TRUE)
 
   render_baked_view <- function(baked_list, title_text) {
     bg_sf     <- baked_list$bg
@@ -39,15 +50,24 @@ plot_xtract <- function(tract_data) {
       # Changed brain structural background to transparent
       ggplot2::geom_sf(data = bg_sf, fill = "transparent", color = "#EAEAEA", size = 0.1) +
       ggplot2::geom_sf(data = plot_df, ggplot2::aes(fill = .data[[val_col]]), color = "black", size = 0.2) +
-      # na.value = "transparent" ensures unmapped tracts are invisible
-      ggplot2::scale_fill_gradient2(low = "blue", mid = "white", high = "red", midpoint = 0.5, na.value = "transparent") +
-      ggplot2::coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]), ylim = c(bbox["ymin"], bbox["ymax"]), expand = TRUE) +
+
+      # --- NEW: Apply the dynamic limits to the gradient ---
+      ggplot2::scale_fill_gradient2(
+        low = "blue", mid = "white", high = "red",
+        midpoint = midpoint,
+        limits = c(limit_min, limit_max),
+        na.value = "transparent"
+      ) +
+
+      # Added datum = NA to guarantee no spatial coordinate boxes are drawn
+      ggplot2::coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]), ylim = c(bbox["ymin"], bbox["ymax"]), expand = TRUE, datum = NA) +
       ggplot2::theme_void() +
       ggplot2::theme(
-        plot.title = ggplot2::element_text(size = 11, face = "bold", hjust = 0.5),
-        legend.position = "none",
-        panel.background = ggplot2::element_rect(fill = "transparent", color = NA),
-        plot.background = ggplot2::element_rect(fill = "transparent", color = NA)
+        plot.title       = ggplot2::element_text(size = 11, face = "bold", hjust = 0.5),
+        legend.position  = "none",
+        panel.border     = ggplot2::element_blank(),
+        panel.background = ggplot2::element_rect(fill = "transparent", colour = NA),
+        plot.background  = ggplot2::element_rect(fill = "transparent", colour = NA)
       ) +
       ggplot2::ggtitle(title_text)
   }
@@ -63,7 +83,7 @@ plot_xtract <- function(tract_data) {
       title = "XTRACT Multi-Planar Anatomical Mapping",
       theme = ggplot2::theme(
         plot.title = ggplot2::element_text(size = 14, face = "bold", hjust = 0.5),
-        plot.background = ggplot2::element_rect(fill = "transparent", color = NA) # Transparent wrapper
+        plot.background = ggplot2::element_rect(fill = "transparent", colour = NA) # Transparent wrapper
       )
     )
 

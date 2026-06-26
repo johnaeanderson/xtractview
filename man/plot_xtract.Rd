@@ -4,13 +4,18 @@
 \alias{plot_xtract}
 \title{Multi-Planar Anatomical Mapping for XTRACT Data}
 \usage{
-plot_xtract(tract_data)
+plot_xtract(tract_data, limit_min = NULL, limit_max = NULL, midpoint = NULL)
 }
 \arguments{
 \item{tract_data}{A \code{data.frame} or tibble containing the data to map.
 Must include a column named exactly \code{"region"} containing valid XTRACT tract names,
-and at least one numeric metric column (e.g., \code{Mean_FA}, \code{MD}, \code{Volume})
-with values bounded between 0 and 1.}
+and at least one numeric metric column (e.g., \code{Mean_FA}, \code{MD}, \code{Volume}).}
+
+\item{limit_min}{Optional numeric. Lower bound for the color scale. Defaults to min data value.}
+
+\item{limit_max}{Optional numeric. Upper bound for the color scale. Defaults to max data value.}
+
+\item{midpoint}{Optional numeric. Center point for the color scale. Defaults to halfway between min and max.}
 }
 \value{
 A combined patchwork ggplot object showing 4 anatomical views.

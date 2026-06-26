@@ -4,10 +4,21 @@
 \alias{plot_xtract_sag_gallery}
 \title{Multi-Slice Sagittal Gallery Mapping for XTRACT Data}
 \usage{
-plot_xtract_sag_gallery(tract_data)
+plot_xtract_sag_gallery(
+  tract_data,
+  limit_min = NULL,
+  limit_max = NULL,
+  midpoint = NULL
+)
 }
 \arguments{
 \item{tract_data}{A data.frame containing columns 'region' (tract names) and 'value'.}
+
+\item{limit_min}{Optional numeric. Lower bound for the color scale. Defaults to min data value.}
+
+\item{limit_max}{Optional numeric. Upper bound for the color scale. Defaults to max data value.}
+
+\item{midpoint}{Optional numeric. Center point for the color scale. Defaults to halfway between min and max.}
 }
 \value{
 A faceted ggplot object showing sequential sagittal structural views.
