@@ -12,17 +12,32 @@
 plot_xtract_gallery <- function(tract_data, limit_min = NULL, limit_max = NULL, midpoint = NULL) {
 
   requireNamespace("sf", quietly = TRUE)
+  requireNamespace("scales", quietly = TRUE) # Needed for out-of-bounds squishing
 
   val_col <- names(tract_data)[names(tract_data) != "region"][1]
 
-  # Smarter Dynamic Midpoint for Statistical Maps
-  if (is.null(limit_min)) limit_min <- min(tract_data[[val_col]], na.rm = TRUE)
-  if (is.null(limit_max)) limit_max <- max(tract_data[[val_col]], na.rm = TRUE)
+  # Auto-calculate limits if not provided
+  calc_min <- min(tract_data[[val_col]], na.rm = TRUE)
+  calc_max <- max(tract_data[[val_col]], na.rm = TRUE)
 
+  if (is.null(limit_min)) limit_min <- calc_min
+  if (is.null(limit_max)) limit_max <- calc_max
+
+  # --- THE ULTIMATE MIDPOINT & SYMMETRY FIX ---
   if (is.null(midpoint)) {
     if (limit_min < 0 && limit_max > 0) {
+      # It's a divergent statistical map!
       midpoint <- 0
+
+      # Force symmetrical limits so color saturation is equal on both sides!
+      max_abs   <- max(abs(c(limit_min, limit_max)))
+      limit_min <- -max_abs
+      limit_max <- max_abs
+
+    } else if (limit_min < 0 && limit_max <= 0) {
+      midpoint <- 0 # Strictly negative statistics
     } else {
+      # Strictly positive (like FA/MD). Centered at the mean.
       midpoint <- mean(c(limit_min, limit_max), na.rm = TRUE)
     }
   }
@@ -44,16 +59,16 @@ plot_xtract_gallery <- function(tract_data, limit_min = NULL, limit_max = NULL, 
       low = "blue", mid = "white", high = "red",
       midpoint = midpoint,
       limits = c(limit_min, limit_max),
+      oob = scales::squish, # <- CRITICAL: Caps out-of-bounds values at max color instead of erasing them!
       na.value = NA
     ) +
 
     ggplot2::facet_wrap(~slice_id, ncol = 4) +
 
-    # --- FIX: Flip X-Axis to Neurological Convention (Left is Left) ---
+    # Flip X-Axis to Neurological Convention (Left is Left)
     ggplot2::scale_x_reverse() +
-    # ------------------------------------------------------------------
 
-  ggplot2::coord_sf(datum = NA) +
+    ggplot2::coord_sf(datum = NA) +
     ggplot2::theme_void() +
     ggplot2::theme(
       panel.border     = ggplot2::element_blank(),
